@@ -27,7 +27,7 @@ The house is known for its zigzags, space-dyed stripes and dense color compositi
 ## Method
 
 ```
-runway image ──► crop to garment ──► measure ─────────────────► missoni_dataset.csv
+runway image ──► crop to garment ──► mask skin ──► measure ─────────────────► missoni_dataset.csv
                                      ├─ dominant colors (k-means)
                                      ├─ colorfulness (Hasler–Süsstrunk)
                                      ├─ brightness · saturation
@@ -38,6 +38,7 @@ runway image ──► crop to garment ──► measure ───────�
 
 | feature | what it captures | range |
 |---|---|---|
+| `skin_share` | share of the crop that is the model's skin, not fabric (masked out of all color features) | 0–1 |
 | `color_1…5` + `_share` | the five dominant colors and how much of the garment each covers | hex, 0–1 |
 | `colorfulness` | overall chromatic intensity | 0 (grey) → 100+ (extremely colorful) |
 | `brightness`, `saturation` | mean HSV value and saturation | 0–1 |
@@ -49,7 +50,7 @@ Pattern type and silhouette are **hand-labelled on a subset** and used later to 
 
 ## Data
 
-One row per runway look. Sources: [Archivio Missoni](https://www.archiviomissoni.it) for the house's historical collections and Vogue Runway for recent seasons. Images stay local; the repo publishes only source links and the numbers derived from them. See [`data/README.md`](data/README.md).
+One row per runway look. Sources: [Archivio Missoni](https://www.archiviomissoni.org) for the house's historical collections and Vogue Runway for recent seasons. Images stay local; the repo publishes only source links and the numbers derived from them. See [`data/README.md`](data/README.md).
 
 **Creative directors** *(verify dates before publishing)*
 
@@ -73,7 +74,9 @@ python src/palette_strips.py      # -> figures/palette_strips.png
 
 - [x] Feature extraction pipeline
 - [x] Collection palette strips
-- [ ] First 10 collections, about 15 looks each
+- [x] Adaptive skin masking
+- [x] First collection: SS 2005, 15 looks
+- [ ] Ten collections spanning 2001–2023, about 15 looks each
 - [ ] Chapters 01–03: palette, pattern and complexity by decade
 - [ ] CLIP image embeddings, then PCA/UMAP map of every look (chapters 04–05)
 - [ ] Pattern classifier trained on the hand-labelled subset
@@ -81,7 +84,8 @@ python src/palette_strips.py      # -> figures/palette_strips.png
 
 ## Limitations
 
-- The garment crop is a fixed box, so background and skin can leak into the colors. A clothing-segmentation model is the planned upgrade.
+- **Skin** is removed by sampling each model's skin tone from her face and masking pixels close to it in CIELAB color space. A generic skin-color rule was tested first and rejected: it erased beige, peach and yellow fabrics, which are common in Missoni collections.
+- **Background** is reduced by a fixed garment crop but not removed, so runway floor still shows between legs and around short or sheer looks. A clothing-segmentation model is the planned upgrade.
 - Photography changes over 70 years (film stock, lighting, studio and runway shots), and this affects measured color. Treat cross-decade comparisons with care.
 - Archive coverage is uneven, and early decades will have fewer looks.
 

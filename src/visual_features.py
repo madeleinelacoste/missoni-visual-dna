@@ -17,6 +17,9 @@ from sklearn.cluster import KMeans
 # the background, floor and head. Tune it once you've looked at your images.
 GARMENT_BOX = (0.37, 0.20, 0.63, 0.66)  # left, top, right, bottom
 
+# Where the model's face sits in a runway photo; used to sample her skin tone.
+FACE_BOX = (0.44, 0.10, 0.56, 0.18)
+
 # Downscale before analysis: colour statistics barely change and it's ~50x faster.
 ANALYSIS_SIZE = 256
 
@@ -36,6 +39,40 @@ def downscale(img: np.ndarray, size: int = ANALYSIS_SIZE) -> np.ndarray:
     pil = Image.fromarray(img)
     pil.thumbnail((size, size))
     return np.asarray(pil)
+
+
+def to_lab(rgb: np.ndarray) -> np.ndarray:
+    """sRGB (uint8, any shape ending in 3) -> CIELAB, where distances match perceived colour difference."""
+    c = rgb.astype(float) / 255
+    c = np.where(c > 0.04045, ((c + 0.055) / 1.055) ** 2.4, c / 12.92)
+    xyz = c @ np.array([[0.4124, 0.3576, 0.1805], [0.2126, 0.7152, 0.0722], [0.0193, 0.1192, 0.9505]]).T
+    xyz /= np.array([0.95047, 1.0, 1.08883])
+    f = np.where(xyz > 0.008856, np.cbrt(xyz), 7.787 * xyz + 16 / 116)
+    return np.stack([116 * f[..., 1] - 16, 500 * (f[..., 0] - f[..., 1]), 200 * (f[..., 1] - f[..., 2])], axis=-1)
+
+
+def skin_like(img: np.ndarray) -> np.ndarray:
+    """Broad YCbCr skin rule (Chai & Ngan). Catches all skin but also many beiges and yellows."""
+    ycc = np.asarray(Image.fromarray(img).convert("YCbCr")).astype(int)
+    cb, cr = ycc[..., 1], ycc[..., 2]
+    return (cr >= 135) & (cr <= 175) & (cb >= 85) & (cb <= 128)
+
+
+def skin_mask(full: np.ndarray, crop: np.ndarray, max_distance: float = 8.0) -> np.ndarray:
+    """Pixels of `crop` that are this model's skin rather than fabric.
+
+    The broad rule alone eats sand, peach and yellow fabrics, so instead we
+    sample the model's own skin tone from her face and keep only pixels close
+    to it in CIELAB. Lightness is down-weighted so the same skin in shadow or
+    highlight still matches, while hue and chroma must be close.
+    """
+    face = crop_garment(full, FACE_BOX)
+    face_skin = face[skin_like(face)]
+    if len(face_skin) < 30:  # face hidden or out of frame: don't guess
+        return np.zeros(crop.shape[:2], dtype=bool)
+    ref = to_lab(face_skin).mean(axis=0)
+    d = (to_lab(crop) - ref) / np.array([3.0, 1.0, 1.0])
+    return (np.linalg.norm(d, axis=-1) < max_distance) & skin_like(crop)
 
 
 def dominant_colors(img: np.ndarray, k: int = 5, seed: int = 0) -> list[tuple[str, float]]:
@@ -124,15 +161,24 @@ def rgb_to_hex(rgb) -> str:
 
 
 def extract(path: str, k: int = 5) -> dict:
-    """All features for one image, flattened into a single dict (one CSV row)."""
-    img = downscale(crop_garment(load_image(path)))
-    row: dict = {}
-    for i, (hex_, share) in enumerate(dominant_colors(img, k=k), start=1):
+    """All features for one image, flattened into a single dict (one CSV row).
+
+    Colour features use fabric pixels only (skin removed); pattern features
+    use the whole crop, since they need the 2-D layout of the image.
+    """
+    full = load_image(path)
+    img = downscale(crop_garment(full))
+    skin = skin_mask(full, img)
+    # A look that is almost all skin (e.g. swimwear) still needs some pixels to measure.
+    fabric = img[~skin] if (~skin).mean() > 0.05 else img.reshape(-1, 3)
+
+    row: dict = {"skin_share": round(float(skin.mean()), 4)}
+    for i, (hex_, share) in enumerate(dominant_colors(fabric, k=k), start=1):
         row[f"color_{i}"] = hex_
         row[f"color_{i}_share"] = round(share, 4)
-    row["colorfulness"] = round(colorfulness(img), 2)
-    row.update({key: round(v, 4) for key, v in hsv_stats(img).items()})
-    row["hue_diversity"] = round(hue_diversity(img), 4)
+    row["colorfulness"] = round(colorfulness(fabric), 2)
+    row.update({key: round(v, 4) for key, v in hsv_stats(fabric).items()})
+    row["hue_diversity"] = round(hue_diversity(fabric), 4)
     row["pattern_complexity"] = round(pattern_complexity(img), 4)
     row["edge_regularity"] = round(edge_regularity(img), 4)
     return row
