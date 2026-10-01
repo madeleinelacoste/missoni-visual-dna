@@ -210,7 +210,6 @@ python src/ablation.py            # -> figures/ch06_ablation.png
 - [x] Chapters 01–03: palette, pattern and complexity over time
 - [x] Hand-built visual fingerprints, collection similarity and era map (chapters 04–05)
 - [x] CLIP image embeddings (garment-only), compared against the hand-built fingerprints
-- [ ] Pattern classifier trained on the hand-labelled subset
 - [x] Ablation test: what drives the Missoni score (chapter 06)
 - [x] *How Missoni Is This?* demo (Gradio app + CLI)
 - [ ] Host the demo on Hugging Face Spaces
