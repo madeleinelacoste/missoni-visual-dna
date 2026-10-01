@@ -18,9 +18,22 @@
 | `source` | `Vogue Runway` | `Archivio Missoni`, `Vogue Runway`, … |
 | `source_url` | `https://…` | page the image came from — this is what makes the dataset reproducible |
 | `image_path` | `images/2021_FW_014.jpg` | relative to `data/` |
-| `pattern` | `zigzag` | **optional, hand-labelled on a subset**: `zigzag`, `stripe`, `geometric`, `space-dye`, `floral-abstract`, `solid`, `other` |
-| `silhouette` | `dress` | optional: `dress`, `top+skirt`, `top+trousers`, `coat`, `knit-set`, `other` |
+| `pattern` | `zigzag` | the look's **most prominent** pattern: `zigzag`, `stripe`, `space-dye`, `geometric`, `print`, `plain` (see below) |
+| `silhouette` | | optional hand label; the pipeline also writes `silhouette_auto` to `missoni_dataset.csv` |
 | `notes` | | anything worth remembering |
+
+## Pattern labels
+
+| label | covers |
+|---|---|
+| `zigzag` | zigzag, chevron and flame-stitch knits |
+| `stripe` | horizontal or vertical stripes, including fringe stripes |
+| `space-dye` | blurred multicolour yarns, flame-dye, ombré / dégradé |
+| `geometric` | checks, plaids, argyle, patchwork, other geometric motifs |
+| `print` | floral, figurative and graphic prints |
+| `plain` | solid colour or tonal/textured knit without a distinct pattern |
+
+**How they were made.** The labels are an AI-assisted first pass: Claude (an AI assistant) reviewed segmented garment close-ups of all 135 looks and assigned each look's most prominent pattern. Ambiguous calls (14 looks) are flagged with `pattern label uncertain` in `notes`. They have not yet been checked by a person, so review them (especially the flagged ones) before treating them as ground truth.
 
 ## Copyright
 

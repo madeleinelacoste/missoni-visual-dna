@@ -36,7 +36,15 @@ Median colorfulness climbs from 42 (FW 2001) to 52 (SS 2008), then drops to 19�
 
 ![Pattern complexity and regularity](figures/ch02_pattern.png)
 
-FW 2016 is the busiest and most striped collection in the sample (median pattern complexity 0.49), which matches its heavy stripe and zigzag knits. FW 2011 and SS 2019 are the plainest. Pattern *type* (zigzag vs. stripe vs. floral) will need the hand-labelled subset and a classifier.
+FW 2016 is the busiest and most striped collection in the sample (median pattern complexity 0.49), which matches its heavy stripe and zigzag knits. FW 2011 and SS 2019 are the plainest.
+
+![Pattern mix](figures/ch02b_pattern_mix.png)
+
+Labelling each look's most prominent pattern ([definitions](data/README.md#pattern-labels); AI-assisted first pass, to be reviewed) shows the house cycling through patterns: prints dominate SS 2008 (10 of 15) and SS 2014 (9), stripes dominate FW 2016 (7), and **the zigzag returns in FW 2023 (7 of 15)**, its strongest showing in the sample.
+
+![Pattern classifier](figures/ch02c_pattern_classifier.png)
+
+Can a model learn those labels? A logistic regression on garment-only CLIP embeddings, tested on collections it never saw ([`src/pattern_analysis.py`](src/pattern_analysis.py)), gets **44% right vs 30%** for always guessing "print" (balanced accuracy 39% vs 16% chance, p < 0.01). Prints are easy (68%). The main failure is **zigzag vs stripe**: at CLIP's 224-pixel input a fine zigzag reads as a stripe, and many looks mix the two. Merging zigzag, stripe and space-dye into one "knit pattern" class raises accuracy to 64% (baseline 49%).
 
 ### 03 — Visual Complexity
 
@@ -156,7 +164,7 @@ This replaced an earlier pipeline (fixed crop box plus a skin mask sampled from 
 
 ![Before/after: SS 2005 palette](figures/method_comparison_2005ss.png)
 
-Pattern type is **hand-labelled on a subset** and used later to train and test a classifier.
+Pattern type is labelled per look (see [data/README.md](data/README.md#pattern-labels)) and used to train and test a classifier.
 
 ## Data
 
@@ -184,6 +192,8 @@ python src/embeddings.py          # -> data/embeddings_handcrafted.csv
 python src/era_analysis.py        # -> figures/ch04–05, data/era_results_handcrafted.json
 python src/clip_embeddings.py     # -> data/embeddings_clip*.csv (first run downloads the 352 MB model)
 python src/era_analysis.py clip   # CLIP versions; also: clip_fullframe, compare
+python src/pattern_analysis.py    # -> figures/ch02b–c, data/pattern_results.json
+python src/ablation.py            # -> figures/ch06_ablation.png
 ```
 
 ## Roadmap
@@ -194,6 +204,8 @@ python src/era_analysis.py clip   # CLIP versions; also: clip_fullframe, compare
 - [x] Garment segmentation (SegFormer-B2)
 - [x] First collection: SS 2005, 15 looks
 - [x] Nine collections spanning 2001–2023 (135 looks), imported automatically from the archive lookbooks
+- [x] Pattern labels (AI-assisted first pass) and pattern classifier (chapter 02b–c)
+- [ ] Human review of the pattern labels
 - [ ] Pre-2001 collections (Ottavio & Rosita era) from other sources
 - [x] Chapters 01–03: palette, pattern and complexity over time
 - [x] Hand-built visual fingerprints, collection similarity and era map (chapters 04–05)
