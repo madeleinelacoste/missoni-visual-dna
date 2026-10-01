@@ -63,7 +63,23 @@ Can the looks reveal their own periods? Partly:
 
 SS 2003 is the most recognizable collection (73%), followed by FW 2011 and SS 2014 (67%). FW 2001 and SS 2008 are the least distinct (13%), sharing their vocabulary with neighbouring seasons.
 
-*Next: replace the hand-built fingerprint with CLIP image embeddings and see whether a general-purpose vision model finds clearer eras.*
+### 05b — What does a neural network see?
+
+The same tests were repeated with **CLIP** (ViT-B/32), a general-purpose vision model that turns an image into a 512-number embedding ([`src/clip_embeddings.py`](src/clip_embeddings.py)).
+
+![Method comparison](figures/ch05_method_comparison.png)
+
+- **The venue trap.** Fed the full runway photo, CLIP identifies the collection **98%** of the time. It is recognizing the room (each show has its own set, lighting and crowd), not the clothes. Fed garment-only images (segmented, on a neutral background), it scores **42%**. All findings here use garment-only inputs. The full-photo embeddings also show a strong year trend (r = 0.54) that disappears once the venue is removed, so the apparent timeline came from changes in photography, not fashion.
+- **Same accuracy, different eyes.** Garment-only CLIP and the color fingerprint both reach 42% but recognize different collections. Color identifies SS 2003 and SS 2014 best; CLIP identifies FW 2011 (87%) and FW 2001 (67%) best. Their collection-similarity rankings barely agree (Spearman ρ = 0.29). Together they reach 47%.
+- **CLIP groups by silhouette and season.** Its closest pairs are SS 2005 & SS 2008 (summer dresses) and FW 2011 & FW 2016 (winter knit coats). The color fingerprint groups by palette instead.
+- **Still no timeline.** Neither garment-only embedding correlates with year (|r| < 0.2).
+
+<details><summary>CLIP versions of the chapter 04–05 charts</summary>
+
+![CLIP similarity](figures/ch04_similarity_clip.png)
+![CLIP era map](figures/ch05_era_map_clip.png)
+
+</details>
 
 ### Season effect: skin
 
@@ -109,7 +125,7 @@ runway image ──► segment garment ──► measure ───────�
 
 ### Isolating the garment
 
-Every pixel is labelled as garment, skin, hair or background by **SegFormer-B2**, a transformer segmentation model fine-tuned for clothing ([mattmdjaga/segformer_b2_clothes](https://huggingface.co/mattmdjaga/segformer_b2_clothes); NVIDIA SegFormer licence, non-commercial use). It runs locally with ONNX Runtime at about 0.7 s per look. Only garment pixels feed the color and pattern features, so the runway floor, background models and skin no longer distort the palette.
+Every pixel is labelled as garment, skin, hair or background by **SegFormer-B2**, a transformer segmentation model fine-tuned for clothing ([mattmdjaga/segformer_b2_clothes](https://huggingface.co/mattmdjaga/segformer_b2_clothes); NVIDIA SegFormer licence, non-commercial use). It runs locally with ONNX Runtime at about 0.7 s per look. CLIP ViT-B/32 (OpenAI, MIT licence) is run the same way, using the [Xenova ONNX export](https://huggingface.co/Xenova/clip-vit-base-patch32). Only garment pixels feed the color and pattern features, so the runway floor, background models and skin no longer distort the palette.
 
 This replaced an earlier pipeline (fixed crop box plus a skin mask sampled from the model's face), which is kept as a fallback:
 
@@ -141,6 +157,8 @@ python src/palette_strips.py      # -> figures/palette_strips.png, look_palettes
 python src/chapter_charts.py      # -> figures/ch01–03, skin_share
 python src/embeddings.py          # -> data/embeddings_handcrafted.csv
 python src/era_analysis.py        # -> figures/ch04–05, data/era_results_handcrafted.json
+python src/clip_embeddings.py     # -> data/embeddings_clip*.csv (first run downloads the 352 MB model)
+python src/era_analysis.py clip   # CLIP versions; also: clip_fullframe, compare
 ```
 
 ## Roadmap
@@ -154,7 +172,7 @@ python src/era_analysis.py        # -> figures/ch04–05, data/era_results_handc
 - [ ] Pre-2001 collections (Ottavio & Rosita era) from other sources
 - [x] Chapters 01–03: palette, pattern and complexity over time
 - [x] Hand-built visual fingerprints, collection similarity and era map (chapters 04–05)
-- [ ] CLIP image embeddings to compare against the hand-built fingerprints
+- [x] CLIP image embeddings (garment-only), compared against the hand-built fingerprints
 - [ ] Pattern classifier trained on the hand-labelled subset
 - [ ] *How Missoni Is This?* Upload an image and find the closest Missoni era (a demo of embeddings, not an authentication tool)
 

@@ -69,7 +69,14 @@ def distance_matrix(X: np.ndarray, labels: np.ndarray, names: list[str]) -> pd.D
     )
 
 
-def ch04_similarity(dist: pd.DataFrame, suffix: str) -> None:
+DESCRIPTIONS = {
+    "handcrafted": "color + edge-direction fingerprints",
+    "clip": "CLIP embeddings of garment-only images",
+    "clip_fullframe": "CLIP embeddings of the full runway photo",
+}
+
+
+def ch04_similarity(dist: pd.DataFrame, suffix: str, desc: str) -> None:
     names = list(dist.index)
     n = len(names)
     fig, ax = plt.subplots(figsize=(8.6, 8), facecolor=SURFACE)
@@ -97,11 +104,11 @@ def ch04_similarity(dist: pd.DataFrame, suffix: str) -> None:
     (d1, a1, b1), (d2, a2, b2) = min(pairs), max(pairs)
     titled(fig, "04 — Which collections look most alike?",
            f"Closest: {b1} & {a1}. Furthest apart: {b2} & {a2}. Darker = more similar.",
-           "Distance between collections minus their internal spread, on color + edge-direction fingerprints.")
+           f"Distance between collections minus their internal spread, on {desc}.")
     save(fig, f"ch04_similarity{suffix}.png")
 
 
-def ch05_map(X: np.ndarray, looks: pd.DataFrame, rec: dict, suffix: str) -> None:
+def ch05_map(X: np.ndarray, looks: pd.DataFrame, rec: dict, suffix: str, desc: str) -> None:
     pca = PCA(2, random_state=0).fit(X)
     Z = pca.transform(X)
     names = collection_order(looks)
@@ -132,12 +139,12 @@ def ch05_map(X: np.ndarray, looks: pd.DataFrame, rec: dict, suffix: str) -> None
     titled(fig, "05 — Each show has a signature, but there's no timeline",
            f"Collection centres jump around rather than drifting in one direction (line = chronological order).\n"
            f"Yet a nearest-neighbour test names a look's collection {acc:.0%} of the time vs {chance:.0%} by chance.",
-           f"PCA of per-look fingerprints (colour + edge direction); the 2 axes capture {pca.explained_variance_ratio_.sum():.0%} "
+           f"PCA of {desc}; the 2 axes capture {pca.explained_variance_ratio_.sum():.0%} "
            "of the variation. Small dots = looks, ringed dots = collection centres.")
     save(fig, f"ch05_era_map{suffix}.png")
 
 
-def ch05_distinctiveness(rec: dict, names: list[str], suffix: str) -> None:
+def ch05_distinctiveness(rec: dict, names: list[str], suffix: str, desc: str) -> None:
     per = pd.Series(rec["per_collection"]).reindex(names)
     fig, ax = plt.subplots(figsize=(10, 4.6), facecolor=SURFACE)
     fig.subplots_adjust(top=0.78, bottom=0.12, left=0.11, right=0.95)
@@ -160,7 +167,7 @@ def ch05_distinctiveness(rec: dict, names: list[str], suffix: str) -> None:
     top = per.idxmax()
     titled(fig, f"How recognisable is each collection? {top} most of all",
            "Share of a collection's looks whose 5 nearest neighbours mostly come from the same show.",
-           f"Leave-one-out 5-NN on per-look fingerprints. Overall {rec['accuracy']:.0%} vs {rec['chance']:.0%} chance "
+           f"Leave-one-out 5-NN on {desc}. Overall {rec['accuracy']:.0%} vs {rec['chance']:.0%} chance "
            f"(permutation test, p = {rec['p_value']}).")
     save(fig, f"ch05_distinctiveness{suffix}.png")
 
@@ -174,16 +181,53 @@ def run(kind: str = "handcrafted") -> dict:
     dist = distance_matrix(X, labels, names)
     pca = PCA(2, random_state=0).fit(X)
     rec["pca_year_corr"] = [round(float(np.corrcoef(c, looks["year"])[0, 1]), 3) for c in pca.transform(X).T]
-    ch04_similarity(dist, suffix)
-    ch05_map(X, looks, rec, suffix)
-    ch05_distinctiveness(rec, names, suffix)
+    desc = DESCRIPTIONS[kind]
+    ch04_similarity(dist, suffix, desc)
+    ch05_map(X, looks, rec, suffix, desc)
+    ch05_distinctiveness(rec, names, suffix, desc)
     out = ROOT / "data" / f"era_results_{kind}.json"
     out.write_text(json.dumps({**rec, "distance": dist.round(3).to_dict()}, indent=2))
     print(f"-> {out.relative_to(ROOT)}: {rec['accuracy']:.0%} vs {rec['chance']:.0%} chance, p={rec['p_value']}")
     return rec
 
 
+METHODS = [
+    ("handcrafted", "Hand-built fingerprint (color + edges)", "#2a78d6"),
+    ("clip", "CLIP, garment only", "#eb6834"),
+    ("clip_fullframe", "CLIP, full photo (venue leaks in)", INK_MUTED),
+]
+
+
+def compare_methods() -> None:
+    """Per-collection recognisability under each embedding, from the saved results."""
+    res = {k: json.loads((ROOT / "data" / f"era_results_{k}.json").read_text()) for k, _, _ in METHODS}
+    names = sorted(res["handcrafted"]["per_collection"], key=lambda c: (int(c[:4]), c))
+    fig, ax = plt.subplots(figsize=(10, 6.4), facecolor=SURFACE)
+    fig.subplots_adjust(top=0.7, bottom=0.1, left=0.11, right=0.97)
+    frame(ax, "")
+    ax.grid(axis="y", visible=False)
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    y = np.arange(len(names))
+    for (kind, label, color), dy in zip(METHODS, [-0.22, 0, 0.22]):
+        per = [res[kind]["per_collection"][n] for n in names]
+        ax.scatter(per, y + dy, s=60, color=color, edgecolors=SURFACE, linewidths=1.5, zorder=3,
+                   label=f"{label}: {res[kind]['accuracy']:.0%} overall")
+    ax.axvline(res["handcrafted"]["chance"], color=INK_MUTED, linewidth=1, linestyle=(0, (3, 3)))
+    ax.text(res["handcrafted"]["chance"], -0.85, " chance", color=INK_MUTED, fontsize=8.5)
+    ax.set_yticks(y, names, fontfamily="monospace")
+    ax.set_ylim(len(names) - 0.5, -1)
+    ax.set_xlim(0, 1.02)
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:.0%}"))
+    ax.legend(frameon=False, loc="lower left", bbox_to_anchor=(-0.01, 1.01), ncol=1, fontsize=9,
+              labelcolor=INK_SECONDARY)
+    titled(fig, "Colour and CLIP recognise different collections, and the venue fakes it",
+           "Share of each collection's looks correctly identified by a leave-one-out 5-nearest-neighbour model.",
+           "Full-photo CLIP scores ~98% by recognising each show's venue and lighting, so all findings use garment-only inputs.")
+    save(fig, "ch05_method_comparison.png")
+
+
 if __name__ == "__main__":
     import sys
 
-    run(sys.argv[1] if len(sys.argv) > 1 else "handcrafted")
+    arg = sys.argv[1] if len(sys.argv) > 1 else "handcrafted"
+    compare_methods() if arg == "compare" else run(arg)
