@@ -14,6 +14,42 @@
 
 The house is known for its zigzags, space-dyed stripes and dense color compositions. This project asks how much of that identity can be measured from runway images alone, and how it has changed from Ottavio and Rosita Missoni to the present day.
 
+## Findings so far
+
+*9 collections, 2001–2023, 135 runway looks from the Archivio Missoni lookbooks.*
+
+### 01 — The Colors of Missoni
+
+*(Palette chart at the top of this page.)* Warm rust, camel and brown dominate the early 2000s. Teal and coral accents arrive in 2005–2008, followed by a shift to dusty mauve, grey and near-neutrals from 2011. **SS 2019 is the only collection with no vivid accent at all.**
+
+![Colorfulness over time](figures/ch01_colorfulness.png)
+
+Median colorfulness climbs from 42 (FW 2001) to 52 (SS 2008), then drops to 19–31 from 2011 on.
+
+<details><summary>Every look in its own colors</summary>
+
+![Every look's palette](figures/look_palettes.png)
+
+</details>
+
+### 02 — Pattern DNA
+
+![Pattern complexity and regularity](figures/ch02_pattern.png)
+
+FW 2016 is the busiest and most striped collection in the sample (median pattern complexity 0.49), which matches its heavy stripe and zigzag knits. FW 2011 and SS 2019 are the plainest. Pattern *type* (zigzag vs. stripe vs. floral) will need the hand-labelled subset and a classifier.
+
+### 03 — Visual Complexity
+
+![Hue diversity vs pattern complexity](figures/ch03_complexity.png)
+
+Color variety and pattern density rise together: collections with more hues also tend to have more pattern edges. SS 2003 and FW 2016 sit at the complex end and FW 2011 at the minimal end.
+
+### Season effect: skin
+
+![Skin share by season](figures/skin_share.png)
+
+Spring/Summer looks show 27–33% skin, against 6–14% for Fall/Winter. **SS 2019 breaks the pattern at 11%**: it was as covered-up as a winter show, consistent with its muted palette.
+
 ## Five investigations
 
 | | chapter | question |
@@ -79,7 +115,9 @@ One row per runway look. Sources: [Archivio Missoni](https://www.archiviomissoni
 pip install -r requirements.txt
 # 1. add images to data/images/ and one row per look to data/looks.csv
 python src/extract_features.py    # -> data/missoni_dataset.csv (first run downloads the 110 MB model)
-python src/palette_strips.py      # -> figures/palette_strips.png
+python src/import_lookbook.py pages data/lookbooks/<file>.pdf   # review a lookbook
+python src/palette_strips.py      # -> figures/palette_strips.png, look_palettes.png
+python src/chapter_charts.py      # -> figures/ch01–03, skin_share
 ```
 
 ## Roadmap
@@ -91,7 +129,7 @@ python src/palette_strips.py      # -> figures/palette_strips.png
 - [x] First collection: SS 2005, 15 looks
 - [x] Nine collections spanning 2001–2023 (135 looks), imported automatically from the archive lookbooks
 - [ ] Pre-2001 collections (Ottavio & Rosita era) from other sources
-- [ ] Chapters 01–03: palette, pattern and complexity by decade
+- [x] Chapters 01–03: palette, pattern and complexity over time
 - [ ] CLIP image embeddings, then PCA/UMAP map of every look (chapters 04–05)
 - [ ] Pattern classifier trained on the hand-labelled subset
 - [ ] *How Missoni Is This?* Upload an image and find the closest Missoni era (a demo of embeddings, not an authentication tool)
