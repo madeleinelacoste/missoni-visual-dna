@@ -111,7 +111,7 @@ python app.py   # then open http://127.0.0.1:7860
 
 Upload an outfit photo. The app segments the garment, embeds it with CLIP and returns a 0–100 score, the closest Missoni collection, the garment's palette and its nearest archive looks (with links to the archive lookbooks). There's also a command-line version: `python src/how_missoni.py photo.jpg`. *For fun and learning only. It cannot authenticate anything.*
 
-## Five investigations
+## The investigations
 
 | | chapter | question |
 |---|---|---|
@@ -120,6 +120,7 @@ Upload an outfit photo. The app segments the garment, embeds it with CLIP and re
 | 03 | **Visual Complexity** | Are some eras more colorful or visually complex than others? |
 | 04 | **Evolution vs. Consistency** | Which collections look most alike? |
 | 05 | **Missoni's Eras** | Can unsupervised clustering find aesthetic periods without being told the year? |
+| 06 | **What Makes It Missoni?** | Which visual ingredient (color, pattern or shape) carries the house identity? |
 
 ## Method
 
