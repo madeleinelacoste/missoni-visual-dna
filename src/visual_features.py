@@ -15,7 +15,7 @@ from sklearn.cluster import KMeans
 # Runway photos are tall, with the model roughly centred. This box (as
 # fractions of width/height) keeps the torso-to-knee area and drops most of
 # the background, floor and head. Tune it once you've looked at your images.
-GARMENT_BOX = (0.30, 0.18, 0.70, 0.75)  # left, top, right, bottom
+GARMENT_BOX = (0.37, 0.20, 0.63, 0.66)  # left, top, right, bottom
 
 # Downscale before analysis: colour statistics barely change and it's ~50x faster.
 ANALYSIS_SIZE = 256

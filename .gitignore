@@ -7,3 +7,6 @@ __pycache__/
 .venv/
 .ipynb_checkpoints/
 .DS_Store
+
+# Source lookbook PDFs (copyrighted, local only)
+data/lookbooks/
