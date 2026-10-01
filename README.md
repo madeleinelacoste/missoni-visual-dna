@@ -4,7 +4,7 @@
 
 *A computer-vision study of how Missoni's visual identity has evolved across womenswear collections, using color extraction, image embeddings, clustering and visual similarity.*
 
-<!-- Replace with the real chart once the first collections are in: figures/palette_strips.png -->
+![Missoni — years in color](figures/palette_strips.png)
 
 ---
 
@@ -89,7 +89,8 @@ python src/palette_strips.py      # -> figures/palette_strips.png
 - [x] Adaptive skin masking
 - [x] Garment segmentation (SegFormer-B2)
 - [x] First collection: SS 2005, 15 looks
-- [ ] Ten collections spanning 2001–2023, about 15 looks each
+- [x] Nine collections spanning 2001–2023 (135 looks), imported automatically from the archive lookbooks
+- [ ] Pre-2001 collections (Ottavio & Rosita era) from other sources
 - [ ] Chapters 01–03: palette, pattern and complexity by decade
 - [ ] CLIP image embeddings, then PCA/UMAP map of every look (chapters 04–05)
 - [ ] Pattern classifier trained on the hand-labelled subset
@@ -98,6 +99,8 @@ python src/palette_strips.py      # -> figures/palette_strips.png
 ## Limitations
 
 - The segmentation model was trained on everyday clothing, not runway knitwear. It treats swimwear as `top`, a jacket over a dress mostly as `dress`, and sheer fabric over skin as garment.
+- Lookbook photography changes across the archive: scanned film in 2001–2003, then digital, with a different venue and lighting each season. Some cross-season color differences come from the camera rather than the clothes.
+- The online archive starts at 2001, so the Ottavio & Rosita era is not yet covered. The SS 2019 show was co-ed and its lookbook includes menswear looks.
 - A generic skin-color rule was tried for the fallback and rejected: it erased the beige, peach and yellow fabrics common in Missoni collections.
 - Photography changes over 70 years (film stock, lighting, studio and runway shots), and this affects measured color. Treat cross-decade comparisons with care.
 - Archive coverage is uneven, and early decades will have fewer looks.
