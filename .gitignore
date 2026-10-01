@@ -1,0 +1,9 @@
+# Runway/archive photos are copyrighted — keep them local, never commit them.
+data/images/*
+!data/images/.gitkeep
+
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+.DS_Store

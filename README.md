@@ -1,0 +1,90 @@
+# MISSONI — Visual DNA
+
+### Quantifying color, pattern & design across decades of Italian fashion
+
+*A computer-vision study of how Missoni's visual identity has evolved across womenswear collections, using color extraction, image embeddings, clustering and visual similarity.*
+
+<!-- Replace with the real chart once the first collections are in: figures/palette_strips.png -->
+
+---
+
+## The question
+
+**Can data and computer vision measure what makes a garment recognizably Missoni?**
+
+The house is known for its zigzags, space-dyed stripes and dense color compositions. This project asks how much of that identity can be measured from runway images alone, and how it has changed from Ottavio and Rosita Missoni to the present day.
+
+## Five investigations
+
+| | chapter | question |
+|---|---|---|
+| 01 | **The Colors of Missoni** | How has the house palette changed by decade? |
+| 02 | **Pattern DNA** | How often do zigzags, stripes and geometric patterns appear? |
+| 03 | **Visual Complexity** | Are some eras more colorful or visually complex than others? |
+| 04 | **Evolution vs. Consistency** | Which collections look most alike? |
+| 05 | **Missoni's Eras** | Can unsupervised clustering find aesthetic periods without being told the year? |
+
+## Method
+
+```
+runway image ──► crop to garment ──► measure ─────────────────► missoni_dataset.csv
+                                     ├─ dominant colors (k-means)
+                                     ├─ colorfulness (Hasler–Süsstrunk)
+                                     ├─ brightness · saturation
+                                     ├─ hue diversity (hue entropy)
+                                     ├─ pattern complexity (edge density)
+                                     └─ edge regularity (stripe ≈ 1, zigzag ≈ 0.3, print ≈ 0)
+```
+
+| feature | what it captures | range |
+|---|---|---|
+| `color_1…5` + `_share` | the five dominant colors and how much of the garment each covers | hex, 0–1 |
+| `colorfulness` | overall chromatic intensity | 0 (grey) → 100+ (extremely colorful) |
+| `brightness`, `saturation` | mean HSV value and saturation | 0–1 |
+| `hue_diversity` | how many different hues appear | 0 (monochrome) → 1 (full spectrum) |
+| `pattern_complexity` | share of pixels on a strong edge | 0 (plain) → high (dense knit pattern) |
+| `edge_regularity` | how few directions the edges run in | 1 (stripes) · ~0.3 (zigzag) · ~0 (floral/abstract) |
+
+Pattern type and silhouette are **hand-labelled on a subset** and used later to train and test a classifier.
+
+## Data
+
+One row per runway look. Sources: [Archivio Missoni](https://www.archiviomissoni.it) for the house's historical collections and Vogue Runway for recent seasons. Images stay local; the repo publishes only source links and the numbers derived from them. See [`data/README.md`](data/README.md).
+
+**Creative directors** *(verify dates before publishing)*
+
+| era | creative direction |
+|---|---|
+| 1953–1997 | Ottavio & Rosita Missoni |
+| 1997–2021 | Angela Missoni |
+| 2021–2023 | Alberto Caliri |
+| 2023– | Filippo Grazioli, then successors |
+
+## Reproduce
+
+```bash
+pip install -r requirements.txt
+# 1. add images to data/images/ and one row per look to data/looks.csv
+python src/extract_features.py    # -> data/missoni_dataset.csv
+python src/palette_strips.py      # -> figures/palette_strips.png
+```
+
+## Roadmap
+
+- [x] Feature extraction pipeline
+- [x] Collection palette strips
+- [ ] First 10 collections, about 15 looks each
+- [ ] Chapters 01–03: palette, pattern and complexity by decade
+- [ ] CLIP image embeddings, then PCA/UMAP map of every look (chapters 04–05)
+- [ ] Pattern classifier trained on the hand-labelled subset
+- [ ] *How Missoni Is This?* Upload an image and find the closest Missoni era (a demo of embeddings, not an authentication tool)
+
+## Limitations
+
+- The garment crop is a fixed box, so background and skin can leak into the colors. A clothing-segmentation model is the planned upgrade.
+- Photography changes over 70 years (film stock, lighting, studio and runway shots), and this affects measured color. Treat cross-decade comparisons with care.
+- Archive coverage is uneven, and early decades will have fewer looks.
+
+---
+
+*Part of a portfolio on data × culture × creativity — [madeleinelacoste](https://github.com/madeleinelacoste)*
