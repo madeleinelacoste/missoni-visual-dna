@@ -3,3 +3,4 @@ pandas
 pillow
 scikit-learn
 matplotlib
+onnxruntime

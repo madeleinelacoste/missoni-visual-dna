@@ -10,3 +10,6 @@ __pycache__/
 
 # Source lookbook PDFs (copyrighted, local only)
 data/lookbooks/
+
+# Segmentation model weights (downloaded automatically on first run)
+models/

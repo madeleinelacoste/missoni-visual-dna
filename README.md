@@ -27,18 +27,22 @@ The house is known for its zigzags, space-dyed stripes and dense color compositi
 ## Method
 
 ```
-runway image ──► crop to garment ──► mask skin ──► measure ─────────────────► missoni_dataset.csv
-                                     ├─ dominant colors (k-means)
-                                     ├─ colorfulness (Hasler–Süsstrunk)
-                                     ├─ brightness · saturation
-                                     ├─ hue diversity (hue entropy)
-                                     ├─ pattern complexity (edge density)
-                                     └─ edge regularity (stripe ≈ 1, zigzag ≈ 0.3, print ≈ 0)
+runway image ──► segment garment ──► measure ──────────────────────► missoni_dataset.csv
+                 (SegFormer-B2)     │
+                                    ├─ silhouette (dress / top+skirt / top+trousers …)
+                                    ├─ skin share (body shown vs. covered)
+                                    ├─ dominant colors (k-means)
+                                    ├─ colorfulness (Hasler–Süsstrunk)
+                                    ├─ brightness · saturation
+                                    ├─ hue diversity (hue entropy)
+                                    ├─ pattern complexity (edge density)
+                                    └─ edge regularity (stripe ≈ 1, zigzag ≈ 0.3, print ≈ 0)
 ```
 
 | feature | what it captures | range |
 |---|---|---|
-| `skin_share` | share of the crop that is the model's skin, not fabric (masked out of all color features) | 0–1 |
+| `silhouette_auto` | outfit shape, read from which garment classes the model finds | `dress`, `top+skirt`, `top+trousers`, … |
+| `skin_share` | share of the visible body that is skin rather than clothing | 0–1 |
 | `color_1…5` + `_share` | the five dominant colors and how much of the garment each covers | hex, 0–1 |
 | `colorfulness` | overall chromatic intensity | 0 (grey) → 100+ (extremely colorful) |
 | `brightness`, `saturation` | mean HSV value and saturation | 0–1 |
@@ -46,7 +50,15 @@ runway image ──► crop to garment ──► mask skin ──► measure ─
 | `pattern_complexity` | share of pixels on a strong edge | 0 (plain) → high (dense knit pattern) |
 | `edge_regularity` | how few directions the edges run in | 1 (stripes) · ~0.3 (zigzag) · ~0 (floral/abstract) |
 
-Pattern type and silhouette are **hand-labelled on a subset** and used later to train and test a classifier.
+### Isolating the garment
+
+Every pixel is labelled as garment, skin, hair or background by **SegFormer-B2**, a transformer segmentation model fine-tuned for clothing ([mattmdjaga/segformer_b2_clothes](https://huggingface.co/mattmdjaga/segformer_b2_clothes); NVIDIA SegFormer licence, non-commercial use). It runs locally with ONNX Runtime at about 0.7 s per look. Only garment pixels feed the color and pattern features, so the runway floor, background models and skin no longer distort the palette.
+
+This replaced an earlier pipeline (fixed crop box plus a skin mask sampled from the model's face), which is kept as a fallback:
+
+![Before/after: SS 2005 palette](figures/method_comparison_2005ss.png)
+
+Pattern type is **hand-labelled on a subset** and used later to train and test a classifier.
 
 ## Data
 
@@ -66,7 +78,7 @@ One row per runway look. Sources: [Archivio Missoni](https://www.archiviomissoni
 ```bash
 pip install -r requirements.txt
 # 1. add images to data/images/ and one row per look to data/looks.csv
-python src/extract_features.py    # -> data/missoni_dataset.csv
+python src/extract_features.py    # -> data/missoni_dataset.csv (first run downloads the 110 MB model)
 python src/palette_strips.py      # -> figures/palette_strips.png
 ```
 
@@ -75,6 +87,7 @@ python src/palette_strips.py      # -> figures/palette_strips.png
 - [x] Feature extraction pipeline
 - [x] Collection palette strips
 - [x] Adaptive skin masking
+- [x] Garment segmentation (SegFormer-B2)
 - [x] First collection: SS 2005, 15 looks
 - [ ] Ten collections spanning 2001–2023, about 15 looks each
 - [ ] Chapters 01–03: palette, pattern and complexity by decade
@@ -84,8 +97,8 @@ python src/palette_strips.py      # -> figures/palette_strips.png
 
 ## Limitations
 
-- **Skin** is removed by sampling each model's skin tone from her face and masking pixels close to it in CIELAB color space. A generic skin-color rule was tested first and rejected: it erased beige, peach and yellow fabrics, which are common in Missoni collections.
-- **Background** is reduced by a fixed garment crop but not removed, so runway floor still shows between legs and around short or sheer looks. A clothing-segmentation model is the planned upgrade.
+- The segmentation model was trained on everyday clothing, not runway knitwear. It treats swimwear as `top`, a jacket over a dress mostly as `dress`, and sheer fabric over skin as garment.
+- A generic skin-color rule was tried for the fallback and rejected: it erased the beige, peach and yellow fabrics common in Missoni collections.
 - Photography changes over 70 years (film stock, lighting, studio and runway shots), and this affects measured color. Treat cross-decade comparisons with care.
 - Archive coverage is uneven, and early decades will have fewer looks.
 

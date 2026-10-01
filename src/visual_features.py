@@ -1,7 +1,11 @@
 """Visual features for a single runway image.
 
 Everything here works on plain NumPy arrays so each step is easy to inspect
-in a notebook: load -> crop to the garment -> measure colour and pattern.
+in a notebook: load -> segment the garment -> measure colour and pattern.
+
+The garment is isolated with a clothing-segmentation model (segmentation.py).
+If that finds no garment, a fallback crops a fixed box and masks skin by
+colour (crop_garment + skin_mask).
 """
 
 from __future__ import annotations
@@ -11,6 +15,8 @@ import colorsys
 import numpy as np
 from PIL import Image, ImageFilter
 from sklearn.cluster import KMeans
+
+import segmentation
 
 # Runway photos are tall, with the model roughly centred. This box (as
 # fractions of width/height) keeps the torso-to-knee area and drops most of
@@ -123,29 +129,47 @@ def hue_diversity(img: np.ndarray, bins: int = 12, min_saturation: float = 0.2) 
     return float(-(p * np.log(p)).sum() / np.log(bins))
 
 
-def pattern_complexity(img: np.ndarray) -> float:
-    """Edge density: share of pixels with a strong luminance gradient (0–1).
+def _gradients(img: np.ndarray, blur: float = 0) -> tuple[np.ndarray, np.ndarray]:
+    pil = Image.fromarray(img).convert("L")
+    if blur:
+        pil = pil.filter(ImageFilter.GaussianBlur(blur))
+    gray = np.asarray(pil).astype(float)
+    return np.diff(gray, axis=1)[:-1, :], np.diff(gray, axis=0)[:, :-1]
+
+
+def _interior(mask: np.ndarray | None, shape: tuple[int, int]) -> np.ndarray:
+    """Shrink a mask by a few pixels so the garment's outline isn't counted as pattern."""
+    if mask is None:
+        return np.ones((shape[0] - 1, shape[1] - 1), dtype=bool)
+    eroded = np.asarray(Image.fromarray(mask.astype(np.uint8) * 255).filter(ImageFilter.MinFilter(7))) > 0
+    return eroded[:-1, :-1]
+
+
+def pattern_complexity(img: np.ndarray, mask: np.ndarray | None = None) -> float:
+    """Edge density: share of garment pixels with a strong luminance gradient (0–1).
 
     Plain fabric -> low; tight zigzag / multi-stripe knit -> high.
     """
-    gray = img.astype(float) @ np.array([0.299, 0.587, 0.114])
-    gx = np.abs(np.diff(gray, axis=1))[:-1, :]
-    gy = np.abs(np.diff(gray, axis=0))[:, :-1]
-    return float((np.hypot(gx, gy) > 25).mean())
+    gx, gy = _gradients(img)
+    inside = _interior(mask, img.shape[:2])
+    if not inside.any():
+        return 0.0
+    return float((np.hypot(gx, gy)[inside] > 25).mean())
 
 
-def edge_regularity(img: np.ndarray, bins: int = 8) -> float:
+def edge_regularity(img: np.ndarray, mask: np.ndarray | None = None, bins: int = 8) -> float:
     """How few directions the pattern's edges run in (0 = every direction, 1 = one direction).
 
     Stripes score ~1, zigzags ~0.3 (two directions), florals, abstract prints
     and noise-like textures ~0.
     """
     # A light blur stops JPEG artefacts and pixel staircases posing as edges.
-    gray = np.asarray(Image.fromarray(img).convert("L").filter(ImageFilter.GaussianBlur(1))).astype(float)
-    gx = np.diff(gray, axis=1)[:-1, :]
-    gy = np.diff(gray, axis=0)[:, :-1]
+    gx, gy = _gradients(img, blur=1)
     mag = np.hypot(gx, gy)
-    strong = mag > max(np.percentile(mag, 80), 5)
+    inside = _interior(mask, img.shape[:2])
+    if not inside.any():
+        return 0.0
+    strong = inside & (mag > max(np.percentile(mag[inside], 80), 5))
     if strong.sum() < 50:
         return 0.0
     # Edge orientation in [0, pi): an edge and its reverse count as the same.
@@ -160,25 +184,47 @@ def rgb_to_hex(rgb) -> str:
     return f"#{r:02X}{g:02X}{b:02X}"
 
 
-def extract(path: str, k: int = 5) -> dict:
-    """All features for one image, flattened into a single dict (one CSV row).
+def isolate_garment(full: np.ndarray) -> tuple[np.ndarray, np.ndarray, dict]:
+    """-> (image, garment mask, info) at analysis size.
 
-    Colour features use fabric pixels only (skin removed); pattern features
-    use the whole crop, since they need the 2-D layout of the image.
+    Uses the segmentation model; falls back to crop + colour skin mask if the
+    model finds (almost) no garment.
     """
-    full = load_image(path)
-    img = downscale(crop_garment(full))
-    skin = skin_mask(full, img)
-    # A look that is almost all skin (e.g. swimwear) still needs some pixels to measure.
-    fabric = img[~skin] if (~skin).mean() > 0.05 else img.reshape(-1, 3)
+    labels = segmentation.segment(full)
+    garment = segmentation.mask_of(labels, segmentation.GARMENT)
+    if garment.mean() > 0.01:
+        skin = segmentation.mask_of(labels, segmentation.SKIN)
+        # Crop to the garment's bounding box so downscaling keeps the fabric detail.
+        ys, xs = np.nonzero(garment)
+        box = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))
+        img = downscale(full[box])
+        mask = np.asarray(Image.fromarray(garment[box].astype(np.uint8) * 255).resize(img.shape[1::-1])) > 127
+        info = {
+            "method": "segmentation",
+            "silhouette_auto": segmentation.silhouette(labels),
+            # How much of the visible body is skin rather than clothing.
+            "skin_share": round(float(skin.sum() / (skin.sum() + garment.sum())), 4),
+        }
+        return img, mask, info
 
-    row: dict = {"skin_share": round(float(skin.mean()), 4)}
+    img = downscale(crop_garment(full))
+    mask = ~skin_mask(full, img)
+    info = {"method": "crop_fallback", "silhouette_auto": "unknown", "skin_share": round(float(1 - mask.mean()), 4)}
+    return img, mask, info
+
+
+def extract(path: str, k: int = 5) -> dict:
+    """All features for one image, flattened into a single dict (one CSV row)."""
+    img, mask, info = isolate_garment(load_image(path))
+    fabric = img[mask] if mask.sum() > 100 else img.reshape(-1, 3)
+
+    row: dict = dict(info)
     for i, (hex_, share) in enumerate(dominant_colors(fabric, k=k), start=1):
         row[f"color_{i}"] = hex_
         row[f"color_{i}_share"] = round(share, 4)
     row["colorfulness"] = round(colorfulness(fabric), 2)
     row.update({key: round(v, 4) for key, v in hsv_stats(fabric).items()})
     row["hue_diversity"] = round(hue_diversity(fabric), 4)
-    row["pattern_complexity"] = round(pattern_complexity(img), 4)
-    row["edge_regularity"] = round(edge_regularity(img), 4)
+    row["pattern_complexity"] = round(pattern_complexity(img, mask), 4)
+    row["edge_regularity"] = round(edge_regularity(img, mask), 4)
     return row
