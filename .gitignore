@@ -13,3 +13,8 @@ data/lookbooks/
 
 # Segmentation model weights (downloaded automatically on first run)
 models/
+
+# How-Missoni result cards (may contain archive thumbnails)
+results/
+
+.claude/

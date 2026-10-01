@@ -81,11 +81,35 @@ The same tests were repeated with **CLIP** (ViT-B/32), a general-purpose vision 
 
 </details>
 
+### 06 — What makes it Missoni?
+
+![Ablation](figures/ch06_ablation.png)
+
+The demo below scores how close a garment is to the archive, calibrated so that **50 = a typical Missoni runway look** (each archive look scored with its own collection hidden). To find out what drives that score, 45 Missoni looks were re-scored with one ingredient removed at a time ([`src/ablation.py`](src/ablation.py)):
+
+| condition | median score |
+|---|---|
+| original | 52 |
+| no colour (greyscale) | 44 |
+| light blur (pattern softened) | 23 |
+| heavy blur (pattern gone, colour and drape kept) | 3 |
+| one flat colour | 1 |
+
+**To the model, Missoni-ness lives in the knit pattern, not the palette.** Removing all color costs little, but blurring away the pattern while keeping color, silhouette and drape erases the resemblance. Combined with chapter 05, this gives a two-part answer: **color tells Missoni collections apart, and pattern is what makes them Missoni.**
+
 ### Season effect: skin
 
 ![Skin share by season](figures/skin_share.png)
 
 Spring/Summer looks show 27–33% skin, against 6–14% for Fall/Winter. **SS 2019 breaks the pattern at 11%**: it was as covered-up as a winter show, consistent with its muted palette.
+
+## Demo: How Missoni Is This?
+
+```bash
+python app.py   # then open http://127.0.0.1:7860
+```
+
+Upload an outfit photo. The app segments the garment, embeds it with CLIP and returns a 0–100 score, the closest Missoni collection, the garment's palette and its nearest archive looks (with links to the archive lookbooks). There's also a command-line version: `python src/how_missoni.py photo.jpg`. *For fun and learning only. It cannot authenticate anything.*
 
 ## Five investigations
 
@@ -174,7 +198,9 @@ python src/era_analysis.py clip   # CLIP versions; also: clip_fullframe, compare
 - [x] Hand-built visual fingerprints, collection similarity and era map (chapters 04–05)
 - [x] CLIP image embeddings (garment-only), compared against the hand-built fingerprints
 - [ ] Pattern classifier trained on the hand-labelled subset
-- [ ] *How Missoni Is This?* Upload an image and find the closest Missoni era (a demo of embeddings, not an authentication tool)
+- [x] Ablation test: what drives the Missoni score (chapter 06)
+- [x] *How Missoni Is This?* demo (Gradio app + CLI)
+- [ ] Host the demo on Hugging Face Spaces
 
 ## Limitations
 
