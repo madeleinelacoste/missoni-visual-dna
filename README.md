@@ -44,6 +44,27 @@ FW 2016 is the busiest and most striped collection in the sample (median pattern
 
 Color variety and pattern density rise together: collections with more hues also tend to have more pattern edges. SS 2003 and FW 2016 sit at the complex end and FW 2011 at the minimal end.
 
+### 04 — Evolution vs. Consistency
+
+![Collection similarity](figures/ch04_similarity.png)
+
+Each look gets a 77-number visual fingerprint: a CIELAB color histogram plus a histogram of edge directions, both computed on garment pixels only ([`src/embeddings.py`](src/embeddings.py)). The closest pair is **FW 2001 & SS 2003**, and the next closest is **FW 2023 & FW 2001**, which suggests the 2023 collection looked back to the house's early-2000s palette. SS 2005 is the outlier: its pale gold and turquoise chiffons are far from everything after it.
+
+### 05 — Missoni's Eras
+
+![Era map](figures/ch05_era_map.png)
+
+Can the looks reveal their own periods? Partly:
+
+- **Each show has a recognizable signature.** Given a look it hasn't seen, a 5-nearest-neighbour model names its collection **42% of the time vs 10% by chance** (permutation test, p = 0.005). Color carries this; texture alone reaches only 19%.
+- **There is no single timeline.** Collection centres zigzag across the map instead of drifting in one direction, and neither main axis correlates with year (|r| < 0.2). In this data, Missoni moves between a few recurring looks rather than evolving steadily.
+
+![Distinctiveness](figures/ch05_distinctiveness.png)
+
+SS 2003 is the most recognizable collection (73%), followed by FW 2011 and SS 2014 (67%). FW 2001 and SS 2008 are the least distinct (13%), sharing their vocabulary with neighbouring seasons.
+
+*Next: replace the hand-built fingerprint with CLIP image embeddings and see whether a general-purpose vision model finds clearer eras.*
+
 ### Season effect: skin
 
 ![Skin share by season](figures/skin_share.png)
@@ -118,6 +139,8 @@ python src/extract_features.py    # -> data/missoni_dataset.csv (first run downl
 python src/import_lookbook.py pages data/lookbooks/<file>.pdf   # review a lookbook
 python src/palette_strips.py      # -> figures/palette_strips.png, look_palettes.png
 python src/chapter_charts.py      # -> figures/ch01–03, skin_share
+python src/embeddings.py          # -> data/embeddings_handcrafted.csv
+python src/era_analysis.py        # -> figures/ch04–05, data/era_results_handcrafted.json
 ```
 
 ## Roadmap
@@ -130,7 +153,8 @@ python src/chapter_charts.py      # -> figures/ch01–03, skin_share
 - [x] Nine collections spanning 2001–2023 (135 looks), imported automatically from the archive lookbooks
 - [ ] Pre-2001 collections (Ottavio & Rosita era) from other sources
 - [x] Chapters 01–03: palette, pattern and complexity over time
-- [ ] CLIP image embeddings, then PCA/UMAP map of every look (chapters 04–05)
+- [x] Hand-built visual fingerprints, collection similarity and era map (chapters 04–05)
+- [ ] CLIP image embeddings to compare against the hand-built fingerprints
 - [ ] Pattern classifier trained on the hand-labelled subset
 - [ ] *How Missoni Is This?* Upload an image and find the closest Missoni era (a demo of embeddings, not an authentication tool)
 
