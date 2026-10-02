@@ -21,6 +21,7 @@
 | `pattern` | `zigzag` | the look's **most prominent** pattern: `zigzag`, `stripe`, `space-dye`, `geometric`, `print`, `plain` (see below) |
 | `silhouette` | | optional hand label; the pipeline also writes `silhouette_auto` to `missoni_dataset.csv` |
 | `notes` | | anything worth remembering |
+| `pattern_reviewed` | `True` | the pattern label has been checked by a person (via `review_labels.py`) |
 
 ## Pattern labels
 
@@ -33,7 +34,7 @@
 | `print` | floral, figurative and graphic prints |
 | `plain` | solid colour or tonal/textured knit without a distinct pattern |
 
-**How they were made.** The labels are an AI-assisted first pass: Claude (an AI assistant) reviewed segmented garment close-ups of all 135 looks and assigned each look's most prominent pattern. Ambiguous calls (14 looks) are flagged with `pattern label uncertain` in `notes`. They have not yet been checked by a person, so review them (especially the flagged ones) before treating them as ground truth.
+**How they were made.** The labels are an AI-assisted first pass: Claude (an AI assistant) reviewed segmented garment close-ups of all 135 looks and assigned each look's most prominent pattern. Ambiguous calls (14 looks) are flagged with `pattern label uncertain` in `notes`. Labels checked by the project author are marked `pattern_reviewed = True`. Unreviewed labels are still the AI first pass. Run `python review_labels.py` to review them.
 
 ## Copyright
 
