@@ -1,34 +1,34 @@
 {
-  "accuracy": 0.444,
-  "majority_baseline": 0.289,
-  "balanced_accuracy": 0.39,
-  "balanced_chance": 0.16,
+  "accuracy": 0.437,
+  "majority_baseline": 0.296,
+  "balanced_accuracy": 0.393,
+  "balanced_chance": 0.163,
   "p_value": 0.0099,
-  "coarse_accuracy": 0.659,
+  "coarse_accuracy": 0.637,
   "coarse_baseline": 0.489,
   "recall": {
-    "geometric": 0.182,
-    "plain": 0.526,
-    "print": 0.718,
+    "geometric": 0.273,
+    "plain": 0.5,
+    "print": 0.675,
     "space-dye": 0.308,
-    "stripe": 0.296,
-    "zigzag": 0.308
+    "stripe": 0.259,
+    "zigzag": 0.346
   },
   "confusion": [
     [
-      8,
-      11,
+      9,
+      10,
       1,
       1,
-      2,
-      3
+      3,
+      2
     ],
     [
-      11,
-      8,
-      2,
-      2,
-      2,
+      9,
+      7,
+      3,
+      3,
+      3,
       2
     ],
     [
@@ -36,32 +36,32 @@
       4,
       4,
       0,
+      0,
+      5
+    ],
+    [
       1,
+      2,
+      1,
+      3,
+      2,
+      2
+    ],
+    [
+      5,
+      0,
+      2,
+      2,
+      27,
       4
     ],
     [
       0,
-      3,
-      1,
-      2,
-      3,
-      2
-    ],
-    [
-      2,
-      1,
-      4,
-      2,
-      28,
-      2
-    ],
-    [
-      1,
       0,
-      3,
+      4,
       3,
       2,
-      10
+      9
     ]
   ]
 }

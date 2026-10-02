@@ -40,7 +40,7 @@ FW 2016 is the busiest and most striped collection in the sample (median pattern
 
 ![Pattern mix](figures/ch02b_pattern_mix.png)
 
-Labelling each look's most prominent pattern ([definitions](data/README.md#pattern-labels); AI-assisted first pass, to be reviewed) shows the house cycling through patterns: prints dominate SS 2008 (10 of 15) and SS 2014 (9), stripes dominate FW 2016 (7), and **the zigzag returns in FW 2023 (7 of 15)**, its strongest showing in the sample.
+Labelling each look's most prominent pattern ([definitions](data/README.md#pattern-labels); AI-assisted labels, reviewed by the author) shows the house cycling through patterns: prints dominate SS 2008 (10 of 15) and SS 2014 (9), stripes dominate FW 2016 (7), and **the zigzag returns in FW 2023 (7 of 15)**, its strongest showing in the sample.
 
 ![Pattern classifier](figures/ch02c_pattern_classifier.png)
 
@@ -204,8 +204,7 @@ python src/ablation.py            # -> figures/ch06_ablation.png
 - [x] Garment segmentation (SegFormer-B2)
 - [x] First collection: SS 2005, 15 looks
 - [x] Nine collections spanning 2001–2023 (135 looks), imported automatically from the archive lookbooks
-- [x] Pattern labels (AI-assisted first pass) and pattern classifier (chapter 02b–c)
-- [ ] Human review of the pattern labels
+- [x] Pattern labels (AI-assisted, reviewed by the author) and pattern classifier (chapter 02b–c)
 - [ ] Pre-2001 collections (Ottavio & Rosita era) from other sources
 - [x] Chapters 01–03: palette, pattern and complexity over time
 - [x] Hand-built visual fingerprints, collection similarity and era map (chapters 04–05)

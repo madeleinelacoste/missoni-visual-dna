@@ -1,7 +1,7 @@
 """Chapter 02, part 2: pattern types.
 
 Pattern labels in looks.csv mark each look's most prominent pattern. They are
-an AI-assisted first pass (see data/README.md) and should be reviewed.
+AI-assisted and reviewed by the author (see data/README.md).
 
 1. The pattern mix of each collection.
 2. Can a classifier learn pattern type from garment-only CLIP embeddings?
@@ -69,7 +69,7 @@ def pattern_mix(looks: pd.DataFrame) -> None:
         ax.spines[side].set_visible(False)
     titled(fig, "02b — The zigzag returns in FW 2023",
            "Most prominent pattern of each sampled look. 2008 and 2014 are print collections; FW 2016 is the stripe show.",
-           "Labels: AI-assisted first pass from garment close-ups (data/README.md); to be reviewed.")
+           "Labels: AI-assisted from garment close-ups, reviewed by the author (data/README.md).")
     save(fig, "ch02b_pattern_mix.png")
 
 

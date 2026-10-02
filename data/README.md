@@ -34,7 +34,7 @@
 | `print` | floral, figurative and graphic prints |
 | `plain` | solid colour or tonal/textured knit without a distinct pattern |
 
-**How they were made.** The labels are an AI-assisted first pass: Claude (an AI assistant) reviewed segmented garment close-ups of all 135 looks and assigned each look's most prominent pattern. Ambiguous calls (14 looks) are flagged with `pattern label uncertain` in `notes`. Labels checked by the project author are marked `pattern_reviewed = True`. Unreviewed labels are still the AI first pass. Run `python review_labels.py` to review them.
+**How they were made.** The labels are an AI-assisted first pass: Claude (an AI assistant) reviewed segmented garment close-ups of all 135 looks and assigned each look's most prominent pattern. Ambiguous calls (14 looks) are flagged with `pattern label uncertain` in `notes`. The project author then reviewed all 135 labels with `review_labels.py` and approved them as they stand (`pattern_reviewed = True`). Use the same page to revise labels or review new looks.
 
 ## Copyright
 
