@@ -1,0 +1,42 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Build reference.json</title>
+<style>body{font:14px/1.5 ui-monospace,Menlo,monospace;padding:24px}</style>
+<h1>Build docs/reference.json in the browser</h1>
+<p>Run with <code>python tools/serve_reference_builder.py</code>. Reads the local runway photos, computes the
+garment-only CLIP embeddings with the same code and runtime as the public demo, and saves the result.</p>
+<pre id="log">Loading models…</pre>
+<script type="module">
+import * as T from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.0';
+import { loadModels, isolateGarment, embed, TOP_K } from '../docs/core.js';
+
+const log = (t) => { document.getElementById('log').textContent = t; };
+const csv = await (await fetch('../data/looks.csv')).text();
+const [header, ...rows] = csv.trim().split('\n');
+const cols = header.split(',');
+const looks = rows.map((r) => Object.fromEntries(r.split(',').map((v, i) => [cols[i], v])));
+const models = await loadModels(T);
+const embeddings = [];
+for (const [n, look] of looks.entries()) {
+  log(`Embedding ${n + 1}/${looks.length} ${look.look_id}`);
+  const blob = await (await fetch(`../data/${look.image_path}`)).blob();
+  const g = await isolateGarment(T, models, await T.RawImage.fromBlob(blob));
+  embeddings.push(Array.from(await embed(T, models, g.image)));
+}
+// Calibration, as in src/how_missoni.py: each look's mean similarity to its
+// TOP_K closest looks with its own collection hidden.
+const collection = looks.map((l) => `${l.year} ${l.season}`);
+const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+const calibration = embeddings.map((e, i) => {
+  const sims = embeddings.map((r, j) => (collection[j] === collection[i] ? -Infinity : dot(e, r))).sort((a, b) => b - a);
+  return sims.slice(0, TOP_K).reduce((a, b) => a + b, 0) / TOP_K;
+});
+const ref = {
+  note: 'CLIP ViT-B/32 (q8, onnxruntime-web wasm) embeddings of garment-only Missoni runway looks, FW 2001 - FW 2023. No images included.',
+  looks: looks.map((l, i) => ({ id: l.look_id, collection: collection[i], source_url: l.source_url })),
+  calibration: calibration.map((c) => +c.toFixed(5)),
+  embeddings: embeddings.map((e) => e.map((v) => +v.toFixed(4))),
+};
+const res = await fetch('/save', { method: 'POST', body: JSON.stringify(ref) });
+log(res.ok ? `DONE: saved ${looks.length} looks to docs/reference.json` : `Save failed: ${res.status}`);
+</script>

@@ -135,7 +135,9 @@ The [demo](#demo-how-missoni-is-this) scores how close a garment is to the archi
 python app.py   # then open http://127.0.0.1:7860
 ```
 
-To host it, `python scripts/build_space.py` assembles a ready-to-upload [Hugging Face Space](https://huggingface.co/spaces) in `build/space/` (app, code and embeddings only; no runway photos).
+**Online version:** [`docs/`](docs/) is a static page that runs the same pipeline **in the visitor's browser** with [transformers.js](https://huggingface.co/docs/transformers.js) (quantized models, about 120 MB on first visit; photos never leave the device), hosted on GitHub Pages. Its reference fingerprints were built in a browser with the same code ([`tools/reference_builder.html`](tools/reference_builder.html)), because the quantized models compute slightly different numbers in other runtimes. On the 12 test photos it separates Missoni from other pieces about as well as the Python version (a Missoni piece scores higher 76% of the time vs 71%), but individual scores can differ by tens of points: the compressed model is noisier ([scores](data/demo_test_scores_browser.csv)).
+
+`python scripts/build_space.py` also assembles a [Hugging Face Space](https://huggingface.co/spaces) version of the Python app (Gradio Spaces now need a paid plan).
 
 Upload an outfit photo. The app isolates the garment, embeds it with CLIP and returns a 0–100 score, the closest Missoni collection, the garment's palette and its nearest archive looks. Command-line version: `python src/how_missoni.py photo.jpg`. *For fun and learning. It cannot authenticate anything.*
 
@@ -235,6 +237,7 @@ python src/era_analysis.py        # -> chapters 04–05; also: clip, clip_fullfr
 python src/pattern_analysis.py    # -> chapter 02 pattern mix + classifier
 python src/ablation.py            # -> chapter 06
 python review_labels.py           # review pattern labels at http://127.0.0.1:7861
+python tools/serve_reference_builder.py   # rebuild docs/reference.json for the web demo (open the printed page)
 ```
 
 </details>

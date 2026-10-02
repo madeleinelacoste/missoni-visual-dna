@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How Missoni Is This?</title>
+  <meta name="description" content="Upload an outfit photo and see how close it is to 135 Missoni runway looks. Runs entirely in your browser.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M2 22 8 10l6 12 6-12 6 12 4-8' fill='none' stroke='%23c4532e' stroke-width='3' stroke-linejoin='round'/></svg>">
+  <style>
+    :root {
+      --bg: #fbfaf7; --surface: #ffffff; --ink: #141210; --ink-2: #57534c; --ink-3: #8b867d;
+      --line: #e7e3da; --accent: #c4532e; --accent-ink: #ffffff; --chip: #f2eee6;
+      --font: ui-sans-serif, -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #151412; --surface: #1d1b19; --ink: #f4f1ea; --ink-2: #c3bdb1; --ink-3: #8f897e;
+              --line: #33302b; --accent: #e07a55; --accent-ink: #151412; --chip: #26231f; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 var(--font); }
+    main { max-width: 980px; margin: 0 auto; padding: 40px 16px 64px; }
+    .zigzag { height: 10px; margin-bottom: 28px;
+      background: linear-gradient(135deg, var(--bg) 25%, transparent 25%) -6px 0 / 12px 10px,
+                  linear-gradient(225deg, var(--bg) 25%, transparent 25%) -6px 0 / 12px 10px,
+                  linear-gradient(90deg, #c4532e, #e2a33b, #3f8f7d, #3a6fb0, #8c4a8f, #c4532e); }
+    .eyebrow { font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; }
+    h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.02; margin: 0 0 14px; letter-spacing: -.02em; }
+    .lede { font-size: 18px; color: var(--ink-2); max-width: 640px; margin: 0 0 28px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+    .drop { display: grid; place-items: center; text-align: center; min-height: 280px; border: 1.5px dashed var(--line);
+            border-radius: 12px; cursor: pointer; color: var(--ink-2); padding: 16px; position: relative; overflow: hidden; }
+    .drop:hover, .drop.over { border-color: var(--accent); }
+    .drop img { max-width: 100%; max-height: 420px; border-radius: 8px; display: block; }
+    .drop strong { color: var(--ink); }
+    input[type=file] { display: none; }
+    .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+    .examples span { font-size: 13px; color: var(--ink-3); margin-right: 2px; }
+    .examples button { border: 1px solid var(--line); background: var(--chip); color: var(--ink); border-radius: 999px;
+                       padding: 6px 12px; font: 13px var(--font); cursor: pointer; }
+    .examples button:hover { border-color: var(--accent); }
+    .status { font: 13px/1.4 var(--mono); color: var(--ink-3); margin-top: 12px; min-height: 18px; }
+    .bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+    .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+    .empty { color: var(--ink-3); min-height: 280px; display: grid; place-items: center; text-align: center; }
+    .score { font-size: 88px; font-weight: 800; line-height: .9; letter-spacing: -.04em; }
+    .score small { font-size: 22px; font-weight: 500; color: var(--ink-3); letter-spacing: 0; }
+    .verdict { font-size: 22px; font-weight: 700; margin: 8px 0 2px; }
+    .explain { color: var(--ink-2); margin: 0 0 16px; }
+    .meter { position: relative; height: 10px; border-radius: 5px; background: var(--chip); margin: 6px 0 22px; }
+    .meter i { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--accent); }
+    .meter b { position: absolute; top: -4px; bottom: -4px; left: 50%; width: 2px; background: var(--ink-3); }
+    .meter em { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); font: 11px var(--mono); color: var(--ink-3); white-space: nowrap; font-style: normal; }
+    h3 { font-size: 12px; font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin: 18px 0 8px; font-weight: 600; }
+    .palette { display: flex; height: 34px; border-radius: 6px; overflow: hidden; gap: 2px; }
+    .palette div { min-width: 4px; }
+    .seen { display: flex; gap: 14px; align-items: flex-start; }
+    .seen canvas { width: 120px; height: 120px; border-radius: 8px; border: 1px solid var(--line); flex: none; }
+    .seen p { margin: 0; font-size: 14px; color: var(--ink-2); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    td { padding: 7px 0; border-top: 1px solid var(--line); }
+    td.num { text-align: right; font-family: var(--mono); color: var(--ink-2); }
+    td a { color: var(--ink); }
+    .about { margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media (max-width: 760px) { .about { grid-template-columns: 1fr; } }
+    .about h2 { font-size: 15px; margin: 0 0 6px; }
+    .about p { margin: 0; font-size: 14px; color: var(--ink-2); }
+    footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-3); }
+    footer a, .about a { color: var(--ink-2); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="zigzag" aria-hidden="true"></div>
+  <p class="eyebrow">Missoni — Visual DNA · demo</p>
+  <h1>How Missoni<br>is this?</h1>
+  <p class="lede">Upload an outfit photo. A vision model cuts out the garment and compares it with 135 Missoni runway looks from 2001–2023. Everything runs in your browser; your photo is never uploaded.</p>
+
+  <div class="grid">
+    <section class="card">
+      <label class="drop" id="drop" for="file">
+        <div id="dropText"><strong>Drop a photo here</strong><br>or click to choose one<br><small>one outfit, clearly visible, works best</small></div>
+        <img id="preview" alt="Your photo" hidden>
+      </label>
+      <input type="file" id="file" accept="image/*">
+      <div class="examples">
+        <span>Or try:</span>
+        <button data-src="examples/missoni-2014-knit-dress.jpg">Missoni knit dress</button>
+        <button data-src="examples/pucci-1960s-silk-jersey.jpg">Pucci print</button>
+        <button data-src="examples/rykiel-1986-knit-set.jpg">Sonia Rykiel stripes</button>
+      </div>
+      <div class="status" id="status">Loading the models (about 120 MB, once)…</div>
+      <div class="bar"><i id="bar"></i></div>
+    </section>
+
+    <section class="card" aria-live="polite">
+      <div class="empty" id="empty">Your result will appear here.</div>
+      <div id="result" hidden>
+        <div class="score"><span id="score">0</span><small> / 100</small></div>
+        <div class="verdict" id="verdict"></div>
+        <p class="explain" id="explain"></p>
+        <div class="meter" role="img" id="meterLabel"><i id="meter"></i><b></b><em>typical Missoni look</em></div>
+        <h3>Garment palette</h3>
+        <div class="palette" id="palette"></div>
+        <h3>What the model looked at</h3>
+        <div class="seen"><canvas id="garment" width="240" height="240"></canvas>
+          <p>Only the garment counts: background, skin and hair are removed so the score reflects the clothes, not the setting.</p></div>
+        <h3>Closest Missoni looks</h3>
+        <table id="matches"></table>
+      </div>
+    </section>
+  </div>
+
+  <div class="about">
+    <div><h2>What it measures</h2><p>Similarity of the garment's CLIP embedding to Missoni's runway looks, calibrated so that <strong>50 = a typical Missoni look</strong>. In tests it responds mostly to <strong>knit pattern</strong> (zigzags, stripes), so a chevron knit by another maker can score high.</p></div>
+    <div><h2>What it isn't</h2><p>Not an authentication tool. It knows 135 looks from nine collections; it can't tell a genuine piece from a copy, and it's harsher on prints.</p></div>
+    <div><h2>The research</h2><p>Six chapters on Missoni's color, pattern and eras, with method and limitations, on <a href="https://github.com/madeleinelacoste/missoni-visual-dna">GitHub</a>.</p></div>
+  </div>
+
+  <footer>
+    Models: SegFormer-B2 clothes (NVIDIA SegFormer licence, non-commercial) and CLIP ViT-B/32 (OpenAI, MIT), quantized ONNX versions by Xenova, run with <a href="https://huggingface.co/docs/transformers.js">transformers.js</a>.
+    Matches link to the <a href="https://www.archiviomissoni.org">Archivio Missoni</a> lookbooks; no runway photos are hosted here.
+    Example photos: Rhode Island School of Design Museum of Art, CC0, via Wikimedia Commons
+    (<a href="https://commons.wikimedia.org/wiki/File:2014_Missoni_knitted_dress_01.jpg">Missoni</a>,
+    <a href="https://commons.wikimedia.org/wiki/File:1960s_Pucci_dress,_printed_silk_jersey_01.jpg">Pucci</a>,
+    <a href="https://commons.wikimedia.org/wiki/File:1986_Spring-Summer_knit_set_by_Sonia_Rykiel,_Paris_01.jpg">Sonia Rykiel</a>).
+    · A project by <a href="https://github.com/madeleinelacoste">@madeleinelacoste</a>.
+  </footer>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

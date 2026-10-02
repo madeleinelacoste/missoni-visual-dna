@@ -26,3 +26,5 @@ data/crops/
 data/test_images/
 
 build/
+
+node_modules/
