@@ -4,7 +4,9 @@
 
 *A computer-vision study of what makes a garment recognizably Missoni: 135 runway looks from nine collections, with each garment isolated, measured and compared.*
 
-`Python` · `scikit-learn` · `SegFormer` · `CLIP` · `ONNX Runtime` · `matplotlib` · `Gradio`
+**[▶ Try the demo: How Missoni Is This?](https://madeleinelacoste.github.io/missoni-visual-dna/)** Upload an outfit photo; runs in your browser.
+
+`Python` · `scikit-learn` · `SegFormer` · `CLIP` · `ONNX Runtime` · `transformers.js` · `matplotlib` · `Gradio`
 
 ![Missoni — years in color](figures/palette_strips.png)
 
@@ -131,11 +133,13 @@ The [demo](#demo-how-missoni-is-this) scores how close a garment is to the archi
 
 ## Demo: How Missoni Is This?
 
+**Live: [madeleinelacoste.github.io/missoni-visual-dna](https://madeleinelacoste.github.io/missoni-visual-dna/)**. Locally:
+
 ```bash
 python app.py   # then open http://127.0.0.1:7860
 ```
 
-**Online version:** [`docs/`](docs/) is a static page that runs the same pipeline **in the visitor's browser** with [transformers.js](https://huggingface.co/docs/transformers.js) (quantized models, about 120 MB on first visit; photos never leave the device), hosted on GitHub Pages. Its reference fingerprints were built in a browser with the same code ([`tools/reference_builder.html`](tools/reference_builder.html)), because the quantized models compute slightly different numbers in other runtimes. On the 12 test photos it separates Missoni from other pieces about as well as the Python version (a Missoni piece scores higher 76% of the time vs 71%), but individual scores can differ by tens of points: the compressed model is noisier ([scores](data/demo_test_scores_browser.csv)).
+**Online version:** [`docs/`](docs/) is a static page that runs the same pipeline **in the visitor's browser** with [transformers.js](https://huggingface.co/docs/transformers.js) (quantized models, about 120 MB on first visit; photos never leave the device), hosted on [GitHub Pages](https://madeleinelacoste.github.io/missoni-visual-dna/). Its reference fingerprints were built in a browser with the same code ([`tools/reference_builder.html`](tools/reference_builder.html)), because the quantized models compute slightly different numbers in other runtimes. On the 12 test photos it separates Missoni from other pieces about as well as the Python version (a Missoni piece scores higher 76% of the time vs 71%), but individual scores can differ by tens of points: the compressed model is noisier ([scores](data/demo_test_scores_browser.csv)).
 
 `python scripts/build_space.py` also assembles a [Hugging Face Space](https://huggingface.co/spaces) version of the Python app (Gradio Spaces now need a paid plan).
 
@@ -244,7 +248,6 @@ python tools/serve_reference_builder.py   # rebuild docs/reference.json for the 
 
 ## Next
 
-- [ ] Host the demo on Hugging Face Spaces
 - [ ] Test the demo score on a larger set of non-Missoni knitwear
 - [ ] Extend to the Ottavio & Rosita era (pre-2001) from other sources
 
