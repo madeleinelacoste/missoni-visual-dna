@@ -24,3 +24,5 @@ data/crops/
 
 # Openly licensed test photos for the demo (credited in README, kept local)
 data/test_images/
+
+build/

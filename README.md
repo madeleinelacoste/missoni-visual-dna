@@ -135,6 +135,8 @@ The [demo](#demo-how-missoni-is-this) scores how close a garment is to the archi
 python app.py   # then open http://127.0.0.1:7860
 ```
 
+To host it, `python scripts/build_space.py` assembles a ready-to-upload [Hugging Face Space](https://huggingface.co/spaces) in `build/space/` (app, code and embeddings only; no runway photos).
+
 Upload an outfit photo. The app isolates the garment, embeds it with CLIP and returns a 0–100 score, the closest Missoni collection, the garment's palette and its nearest archive looks. Command-line version: `python src/how_missoni.py photo.jpg`. *For fun and learning. It cannot authenticate anything.*
 
 #### Does the score work?
