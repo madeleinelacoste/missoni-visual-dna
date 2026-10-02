@@ -1,0 +1,13 @@
+file,group,score,sim,closest,garment
+missoni_1973_barbados,missoni,89.6,0.92,2019 SS,True
+missoni_1970s_plaid_set,missoni,16.3,0.878,2016 FW,True
+missoni_2010_fishscale_dress,missoni,6.7,0.861,2008 SS,True
+missoni_2010_coat,missoni,52.6,0.904,2014 SS,True
+missoni_2014_knit_dress,missoni,43.0,0.898,2023 FW,True
+pucci_1960s_silk_jersey,other,11.1,0.873,2016 FW,True
+pucci_1970s_cocktail,other,0.7,0.824,2023 FW,True
+pucci_1965_knit_fringe,other,57.0,0.906,2016 FW,True
+rykiel_1986_knit_set,other,12.6,0.874,2016 FW,True
+french_1927_wool_knit,other,55.6,0.906,2016 FW,True
+aran_cardigan,other,0.7,0.83,2019 SS,True
+win_patterned_sweater,other,0.0,0.792,2003 SS,True

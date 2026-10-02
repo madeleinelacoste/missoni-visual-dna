@@ -16,7 +16,8 @@
 2. **Every show has a signature, but there is no timeline.** A model names a look's collection 42% of the time (10% by chance), yet the collections don't drift in one direction over the years: the house moves between recurring looks. → [05](#05--missonis-eras)
 3. **The zigzag comes back.** It is strong in 2001–2003, gives way to prints (2008, 2014) and stripes (2016), then returns in FW 2023 (7 of 15 looks), the collection that also sits closest to FW 2001. → [02](#02--pattern-dna), [04](#04--evolution-vs-consistency)
 4. **Color peaked in 2008.** Median colorfulness rose through the 2000s, then fell by about half after 2011. SS 2019 is the most muted collection, with no vivid accent at all. → [01](#01--the-colors-of-missoni)
-5. **A trap avoided: the model was recognizing the room.** Shown full runway photos, CLIP "identifies" the collection 98% of the time by recognizing each show's venue. All findings use garment-only images. → [05](#the-venue-trap)
+5. **The demo score recognizes Missoni-like knits, not Missoni.** On unseen museum photos, Missoni pieces outscore others 71% of the time, but a 1927 chevron knit scores like Missoni. → [demo](#does-the-score-work)
+6. **A trap avoided: the model was recognizing the room.** Shown full runway photos, CLIP "identifies" the collection 98% of the time by recognizing each show's venue. All findings use garment-only images. → [05](#the-venue-trap)
 
 ---
 
@@ -136,6 +137,29 @@ python app.py   # then open http://127.0.0.1:7860
 
 Upload an outfit photo. The app isolates the garment, embeds it with CLIP and returns a 0–100 score, the closest Missoni collection, the garment's palette and its nearest archive looks. Command-line version: `python src/how_missoni.py photo.jpg`. *For fun and learning. It cannot authenticate anything.*
 
+#### Does the score work?
+
+![Demo test](figures/demo_test.png)
+
+Tested on 12 openly licensed museum and display photos that the model has never seen ([`src/demo_test.py`](src/demo_test.py)): five Missoni pieces from outside the dataset (including two 1970s pieces from before the archive starts) and seven by other houses or makers. Missoni pieces score higher (median **43 vs 11**; a Missoni piece outscores a non-Missoni one **71%** of the time), and prints such as Pucci's score near zero. But **a 1927 French chevron knit and a 1965 Pucci knit score like Missoni**. Consistent with [chapter 06](#06--what-makes-it-missoni), the score recognizes *Missoni-like knit pattern*, not the brand. With 12 photos this is an illustration, not an evaluation.
+
+<details><summary>Test photo credits (Wikimedia Commons)</summary>
+
+- [Missoni, abito modello barbados, in seta artificiale, p-e 1973](https://commons.wikimedia.org/wiki/File:Missoni,_abito_modello_barbados,_in_seta_artificiale,_p-e_1973.jpg): Sailko, CC BY 3.0
+- [1970s Missoni sweater and skirt set, purple, red and green plaid knit 01](https://commons.wikimedia.org/wiki/File:1970s_Missoni_sweater_and_skirt_set,_purple,_red_and_green_plaid_knit_01.jpg): Staff photographer, Rhode Island School of Design Museum of Art, CC0
+- [2010 Missoni dress, fishscale knit, on display in Westfield shopping mall 02](https://commons.wikimedia.org/wiki/File:2010_Missoni_dress,_fishscale_knit,_on_display_in_Westfield_shopping_mall_02.jpg): Herry Lawford, CC BY 2.0
+- [Missoni coat 2010](https://commons.wikimedia.org/wiki/File:Missoni_coat_2010.jpg): HerryLawford, CC BY 2.0
+- [2014 Missoni knitted dress 01](https://commons.wikimedia.org/wiki/File:2014_Missoni_knitted_dress_01.jpg): Staff photographer, Rhode Island School of Design Museum of Art, CC0
+- [1960s Pucci dress, printed silk jersey 01](https://commons.wikimedia.org/wiki/File:1960s_Pucci_dress,_printed_silk_jersey_01.jpg): Staff photographer for the Rhode Island School of Design Museum of Art, CC0
+- [Emilio Pucci silk cocktail dress, 1970s](https://commons.wikimedia.org/wiki/File:Emilio_Pucci_silk_cocktail_dress,_1970s.jpg): Joe Mabel, CC BY-SA 4.0
+- [Emilio pucci, abito in maglia di seta e frange, 1965](https://commons.wikimedia.org/wiki/File:Emilio_pucci,_abito_in_maglia_di_seta_e_frange,_1965.jpg): Sailko, CC BY 3.0
+- [1986 Spring-Summer knit set by Sonia Rykiel, Paris 01](https://commons.wikimedia.org/wiki/File:1986_Spring-Summer_knit_set_by_Sonia_Rykiel,_Paris_01.jpg): Staff photographer, Rhode Island School of Design Museum of Art, CC0
+- [1927 wool knit day dress, French 01](https://commons.wikimedia.org/wiki/File:1927_wool_knit_day_dress,_French_01.jpg): Staff photographer for the Rhode Island School of Design Museum of Art, CC0
+- [Aran cardigan](https://commons.wikimedia.org/wiki/File:Aran_cardigan.jpg): Lisa Dusseault from USA, CC BY 2.0
+- ["WIN" patterned sweater](https://commons.wikimedia.org/wiki/File:%22WIN%22_patterned_sweater.JPG): unknown author, Public domain
+
+</details>
+
 ---
 
 ## Method
@@ -216,7 +240,7 @@ python review_labels.py           # review pattern labels at http://127.0.0.1:78
 ## Next
 
 - [ ] Host the demo on Hugging Face Spaces
-- [ ] Test the demo score on non-Missoni knitwear
+- [ ] Test the demo score on a larger set of non-Missoni knitwear
 - [ ] Extend to the Ottavio & Rosita era (pre-2001) from other sources
 
 ---
