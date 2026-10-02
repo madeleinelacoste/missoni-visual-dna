@@ -41,6 +41,7 @@
     .examples button { border: 1px solid var(--line); background: var(--chip); color: var(--ink); border-radius: 999px;
                        padding: 6px 12px; font: 13px var(--font); cursor: pointer; }
     .examples button:hover { border-color: var(--accent); }
+    .caption { font-size: 13px; color: var(--ink-2); margin: 10px 2px 0; }
     .status { font: 13px/1.4 var(--mono); color: var(--ink-3); margin-top: 12px; min-height: 18px; }
     .bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 8px; }
     .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
@@ -85,12 +86,13 @@
         <div id="dropText"><strong>Drop a photo here</strong><br>or click to choose one<br><small>one outfit, clearly visible, works best</small></div>
         <img id="preview" alt="Your photo" hidden>
       </label>
+      <p class="caption" id="caption" hidden></p>
       <input type="file" id="file" accept="image/*">
       <div class="examples">
         <span>Or try:</span>
-        <button data-src="examples/missoni-2014-knit-dress.jpg">Missoni knit dress</button>
-        <button data-src="examples/pucci-1960s-silk-jersey.jpg">Pucci print</button>
-        <button data-src="examples/rykiel-1986-knit-set.jpg">Sonia Rykiel stripes</button>
+        <button data-src="examples/missoni-2014-knit-dress.jpg" data-caption="Example: Missoni knitted dress, 2014 (RISD Museum). A real Missoni piece.">Missoni knit dress</button>
+        <button data-src="examples/pucci-1960s-silk-jersey.jpg" data-caption="Example: Emilio Pucci printed silk jersey dress, 1960s (RISD Museum). Not Missoni: a rival Italian house known for prints.">Pucci print</button>
+        <button data-src="examples/rykiel-1986-knit-set.jpg" data-caption="Example: Sonia Rykiel striped knit set, 1986 (RISD Museum). Not Missoni: a rival French knitwear house.">Sonia Rykiel stripes</button>
       </div>
       <div class="status" id="status">Loading the models (about 120 MB, once)…</div>
       <div class="bar"><i id="bar"></i></div>

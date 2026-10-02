@@ -30,8 +30,10 @@ const ready = Promise.all([
 });
 
 let busy = false;
-async function analyse(blob) {
+async function analyse(blob, caption = '') {
   if (busy) return;
+  $('caption').textContent = caption;
+  $('caption').hidden = !caption;
   busy = true;
   const url = URL.createObjectURL(blob);
   $('preview').src = url;
@@ -59,7 +61,7 @@ function show(r, g) {
   $('result').hidden = false;
   const s = g.found ? Math.round(r.score) : 0;
   $('score').textContent = g.found ? s : '–';
-  $('verdict').textContent = verdict(r.score, g.found);
+  $('verdict').textContent = verdict(s, g.found); // use the number shown, so 9.6 -> "10" -> "A hint of Missoni"
   $('explain').textContent = g.found
     ? `As Missoni as ${s}% of Missoni's own runway looks. Closest collection: ${r.closest}.`
     : 'Try a photo where one outfit is clearly visible.';
@@ -94,4 +96,4 @@ const drop = $('drop');
 ['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
 drop.addEventListener('drop', (e) => e.dataTransfer.files[0] && analyse(e.dataTransfer.files[0]));
 document.querySelectorAll('.examples button').forEach((b) =>
-  b.addEventListener('click', async () => analyse(await (await fetch(b.dataset.src)).blob())));
+  b.addEventListener('click', async () => analyse(await (await fetch(b.dataset.src)).blob(), b.dataset.caption)));
